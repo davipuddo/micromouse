@@ -1,8 +1,8 @@
 #include <cmath>
-#include <cstdio>
 #include <queue>
 #include <string>
 #include <vector>
+#include <cstdint>
 #include "graph.h"
 #include "api.h"
 
@@ -10,10 +10,10 @@
 #define M_Size (M_Width*M_Width)
 
 static int PPos = 0;
-static int facing = 0; // 0 -> Up
-					   // 1 -> Right
-					   // 2 -> Down
-					   // 3 -> Left
+static uint8_t facing = 0; // 0 -> Up
+					   	   // 1 -> Right
+					       // 2 -> Down
+					   	   // 3 -> Left
 
 static Graph G = Graph(M_Width);
 int dist [3][M_Size]; // 0 -> G
@@ -26,6 +26,10 @@ inline int getX (int u) {
 
 inline int getY (int u) {
 	return ((int)((double)u/(double)M_Width));
+}
+
+inline int toLinear(int x, int y) {
+	return (x + (M_Width*y));
 }
 
 inline int randomH (void) {
@@ -58,7 +62,7 @@ inline int heuristic (int u, int d1, int d2) {
 //		return randomH();
 }
 
-inline int f(int u) {
+inline int F(int u) {
 	return (dist[0][u] + dist[1][u]);
 }
 
@@ -93,24 +97,23 @@ bool inRange(int u, int d1, int d2) {
 struct minHeap {
 	bool operator() (const int u, const int v) {
 		bool res = false;
-		if (f(u) == f(v)) {
+		if (F(u) == F(v)) {
 			res = (dist[1][u] > dist[1][v]);
 		} else {
-			res = f(u) > f(v);
+			res = F(u) > F(v);
 		}
 		return (res);
 	}
 };
 
-std::vector<int> astar(int d1, int d2)
+std::vector<int> astar(const int d1, const int d2)
 {
 	clearAllText();
 
     bool visited[M_Size];
     for (int i = 0; i < M_Size; i++) {
         dist[0][i] = 0x7fffffff;           // G
-        dist[1][i] = 0x7fffffff;           // H
-        dist[2][i] = -1;                   // Parent
+        dist[2][i] = 0x7fffffff;           // Parent
         visited[i] = false;
     }
 
@@ -161,7 +164,7 @@ std::vector<int> astar(int d1, int d2)
 	std::vector<int> path;
 
 	int i = stop;
-	while (i != PPos) {
+	while (i >= 0 && i != PPos) {
 		path.push_back(i);
 		i = dist[2][i];
 	}
@@ -295,25 +298,36 @@ void move (std::vector<int> path) {
 	}
 
 	for (int i = (int)path.size()-2; i > -1; i--) {
-		fprintf(stderr, "[%d]\n", path[i]);
+//			fprintf(stderr, "[%d]\n", path[i]);
 		if (!checkWalls()) {
 			turn(PPos, path[i]);
 			moveForward(1);
 			PPos = path[i];
 		} else {
-			fprintf(stderr, "New wall detected - Running A*\n");
+//				fprintf(stderr, "New wall detected - Running A*\n");
 			i = -1;
 		}
 	}
-	fprintf(stderr, "\n---\n\n");
+//		fprintf(stderr, "\n---\n\n");
 }
 
 int main (void) {
 
+    for (int i = 0; i < M_Size; i++) {
+        dist[1][i] = 0x7fffffff; // H
+    }
+
 	while (true) {
 
-		int d1 = 119;
-		int d2 = 136;
+		int dx1 = 7;
+		int dy1 = 7;
+
+		int dx2 = 8;
+		int dy2 = 8;
+
+		int d1 = toLinear(dx1, dy1);
+		int d2 = toLinear(dx2, dy2);
+
 		PPos = 0;
 		facing = 0;
 
@@ -322,6 +336,5 @@ int main (void) {
 		}
 		ackReset();
 	}
-	G.print();
 	return(0);
 }
