@@ -71,7 +71,7 @@ inline int heuristic (int u, int d1, int d2) {
 //		return std::min(euclidean(u, d1), euclidean(u, d2));
 //		return std::min(chebyshev(u, d1), chebyshev(u, d2));
 //		return randomH();
-//		return 0;	// Essencialy the same as running a BFS or Dijkstra's algorithm
+//		return 0;	// Essencialy the same as running Dijkstra's algorithm
 }
 
 inline int F(int u) {
@@ -152,21 +152,21 @@ std::vector<int> astar(const int d1, const int d2)
 						// If the G factor of u+1 is smaller than v's
 						if (dist[0][v] > (dist[0][u] + 1)) {
 							dist[0][v] = dist[0][u] + 1;
+
+							// Check to avoid overwriting with the same value
+							if (dist[1][v] == 0x7fffffff) {
+								dist[1][v] = heuristic(v, d1, d2);
+							}
+
+							// Set u as v's father
+							dist[2][v] = u;
+
+							int vx = getX(v);
+							int vy = getY(v);
+							setText(vx, vy, std::to_string(dist[0][v]) + ", " + std::to_string(dist[1][v]));
+
+							pq.push(v);
 						}
-
-						// Check to avoid overwriting with the same value
-						if (dist[1][v] == 0x7fffffff) {
-							dist[1][v] = heuristic(v, d1, d2);
-						}
-
-						// Set u as v's father
-						dist[2][v] = u;
-
-						int vx = getX(v);
-						int vy = getY(v);
-						setText(vx, vy, std::to_string(dist[0][v]) + ", " + std::to_string(dist[1][v]));
-
-						pq.push(v);
 					}
 				}
 			}
